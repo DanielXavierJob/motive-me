@@ -164,107 +164,63 @@ export default function Home() {
         </div>
 
         <div className={`${styles.center} ${styles.font}`} ref={fraseRef}>
-          {paragraph ?? <Skeleton.Input active={true} block />}
+          {paragraph ? (
+            `“${paragraph}”`
+          ) : (
+            <Skeleton.Input active={true} block />
+          )}
         </div>
 
-        <Row>
-          <Col xs={0} sm={0} md={24} lg={24} xl={24} xxl={24}>
-            <div className={styles.grid}>
-              <a className={styles.card} onClick={() => setParagraph(random())}>
-                <h2 className={inter.className}>
-                  Próxima frase <span>-&gt;</span>
-                </h2>
-                <p className={inter.className}>
-                  Veja qual frase motivacional temos a mais!
-                </p>
-              </a>
-              <a
-                href="https://docs.google.com/forms/d/e/1FAIpQLSegnFeoN-r0c2t4jY_A-4L--QlY3K6SNM0OBSmSIxdzl6qN2Q/viewform?usp=sf_link"
-                className={styles.card}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <h2 className={inter.className}>
-                  Desejo contribuir <span>-&gt;</span>
-                </h2>
-                <p className={inter.className}>Adicione uma frase!</p>
-              </a>
+        <div className={styles.grid}>
+          <a className={styles.card} onClick={() => setParagraph(random())}>
+            <h2 className={inter.className}>
+              Próxima frase <span>-&gt;</span>
+            </h2>
+            <p className={inter.className}>
+              Veja qual frase motivacional temos a mais!
+            </p>
+          </a>
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSegnFeoN-r0c2t4jY_A-4L--QlY3K6SNM0OBSmSIxdzl6qN2Q/viewform?usp=sf_link"
+            className={styles.card}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <h2 className={inter.className}>
+              Desejo contribuir <span>-&gt;</span>
+            </h2>
+            <p className={inter.className}>Adicione uma frase!</p>
+          </a>
 
-              <a
-                href="https://github.com/sponsors/DanielXavierJob"
-                className={styles.card}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <h2 className={inter.className}>
-                  Desejo doar <span>-&gt;</span>
-                </h2>
-                <p className={inter.className}>Doe ajudando o desenvolvedor!</p>
-              </a>
-              <a className={styles.card} onClick={() => setModalOpen(true)}>
-                <h2
-                  className={inter.className}
-                  style={{
-                    color: "red",
-                  }}
-                >
-                  Frase obcena! <span>-&gt;</span>
-                </h2>
-                <p className={inter.className}>Nos ajude denunciando!</p>
-              </a>
-              <a className={styles.card} onClick={() => copy()}>
-                <h2 className={inter.className}>
-                  Copiar frase! <span>-&gt;</span>
-                </h2>
-                <p className={inter.className}>Copie a frase motivacional!</p>
-              </a>
-            </div>
-          </Col>
-          <Col xs={24} sm={24} md={0} lg={0} xl={0} xxl={0}>
-            <FloatButton.Group shape="circle" style={{ right: 24 }}>
-              <Tooltip title="Contribuir com uma frase" placement="left">
-                <Link
-                  href={
-                    "https://docs.google.com/forms/d/e/1FAIpQLSegnFeoN-r0c2t4jY_A-4L--QlY3K6SNM0OBSmSIxdzl6qN2Q/viewform?usp=sf_link"
-                  }
-                >
-                  <FloatButton
-                    icon={<PlusOutlined />}
-                    style={{ marginBottom: "1rem" }}
-                  />
-                </Link>
-              </Tooltip>
-              <Tooltip title="Clique para apoiar" placement="left">
-                <Link href={"https://github.com/sponsors/DanielXavierJob"}>
-                  <FloatButton
-                    icon={<CoffeeOutlined />}
-                    onClick={() => copy()}
-                    style={{ marginBottom: "1rem" }}
-                  />
-                </Link>
-              </Tooltip>
-              <Tooltip title="Clique para copiar" placement="left">
-                <FloatButton
-                  icon={<CopyOutlined />}
-                  onClick={() => copy()}
-                  style={{ marginBottom: "1rem" }}
-                />
-              </Tooltip>
-              <Tooltip title="Clique para denunciar!" placement="left">
-                <FloatButton
-                  icon={<AlertOutlined style={{ color: "red" }} />}
-                  onClick={() => setModalOpen(true)}
-                />
-              </Tooltip>
-              <Tooltip title="Próxima mensagem!" placement="left">
-                <FloatButton
-                  icon={<ArrowRightOutlined />}
-                  onClick={() => setParagraph(random())}
-                />
-              </Tooltip>
-            </FloatButton.Group>
-          </Col>
-        </Row>
+          <a
+            href="https://github.com/sponsors/DanielXavierJob"
+            className={styles.card}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <h2 className={inter.className}>
+              Desejo doar <span>-&gt;</span>
+            </h2>
+            <p className={inter.className}>Doe ajudando o desenvolvedor!</p>
+          </a>
+          <a className={styles.card} onClick={() => setModalOpen(true)}>
+            <h2
+              className={inter.className}
+              style={{
+                color: "red",
+              }}
+            >
+              Frase obcena! <span>-&gt;</span>
+            </h2>
+            <p className={inter.className}>Nos ajude denunciando!</p>
+          </a>
+          <a className={styles.card} onClick={() => copy()}>
+            <h2 className={inter.className}>
+              Copiar frase! <span>-&gt;</span>
+            </h2>
+            <p className={inter.className}>Copie a frase motivacional!</p>
+          </a>
+        </div>
 
         <Modal
           title="Nós sentimos muito por isso!"
