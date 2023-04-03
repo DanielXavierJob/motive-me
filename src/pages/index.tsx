@@ -4,21 +4,53 @@ import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { GoogleSpreadsheet } from "google-spreadsheet";
 import { useEffect, useState } from "react";
-import { Button, Modal, notification } from "antd";
+import { Button, Modal, Skeleton, notification } from "antd";
 import { IconType } from "antd/es/notification/interface";
 const inter = Inter({ subsets: ["latin"] });
 
-export default function Home({ frases }: { frases: Array<string> }) {
+export default function Home() {
+  const [paragraphs, setParagraphs] = useState<Array<string>>([]);
   const [paragraph, setParagraph] = useState<string>();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  useEffect(() => {
-    setParagraph(random());
-  }, [frases]);
 
-  const random = () => {
-    const rand = Math.floor(Math.random() * frases.length);
-    return frases[rand];
+  useEffect(() => {
+    getFrases();
+  }, []);
+  const getFrases = async () => {
+    let frases: Array<string> = [];
+    try {
+      if (
+        process.env.NEXT_PUBLIC_KEY !== undefined &&
+        process.env.NEXT_PUBLIC_SHEET_ID !== undefined &&
+        process.env.NEXT_PUBLIC_CLIENT_EMAIL !== undefined
+      ) {
+        frases = await readRow();
+        console.log(frases);
+      } else {
+        frases.push("Oh não conseguimos se conectar ao provedor de frases! :/");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
+    if (frases.length === 0) {
+      frases.push(
+        "Oh, não possuímos nenhuma frase no momento, que tal você contribuir com uma frase motivacional?"
+      );
+    }
+    setParagraphs(frases);
+    setParagraph(random(frases));
+  };
+  const random = (frases?: Array<string>) => {
+    let rand: number = 0;
+    if (frases) {
+      rand = Math.floor(Math.random() * frases.length);
+      return frases[rand];
+    } else {
+      rand = Math.floor(Math.random() * paragraphs.length);
+      return paragraphs[rand];
+    }
   };
 
   const notificate = (
@@ -32,7 +64,50 @@ export default function Home({ frases }: { frases: Array<string> }) {
       type: type,
     });
   };
+  const readRow = async () => {
+    let sheet;
+    let blacklist;
+    let frases = [];
+    const doc = await getDoc(process.env.NEXT_PUBLIC_SHEET_ID ?? "");
+    const blacklistDoc = await getDoc(
+      process.env.NEXT_PUBLIC_SHEET_ID_BLACKLIST ?? ""
+    );
+    if (doc && blacklistDoc) {
+      console.log("OK");
+      blacklist = blacklistDoc.sheetsByIndex[0];
 
+      const rowsBlackList = await blacklist.getRows();
+
+      sheet = doc.sheetsByIndex[0];
+      const rows = await sheet.getRows();
+      if (rows.length > 0) {
+        rows.map((row) => {
+          const frase = row;
+          if (
+            !rowsBlackList.find((bl) =>
+              bl["blacklist"].includes(frase["Qual a frase?"])
+            )
+          ) {
+            if (row.ativo === "1") {
+              frases.push(row["Qual a frase?"]);
+            } else if (row.ativo === undefined) {
+              row.ativo = "1";
+              row.save();
+              frases.push(row["Qual a frase?"]);
+            }
+          } else {
+            row.ativo = 0;
+            row.save();
+          }
+        });
+      } else {
+        frases.push(
+          "Oh, não possuímos nenhuma frase no momento, que tal você contribuir com uma frase motivacional?"
+        );
+      }
+    }
+    return frases;
+  };
   const getDoc = async (id: string) => {
     try {
       const doc = new GoogleSpreadsheet(id);
@@ -66,7 +141,10 @@ export default function Home({ frases }: { frases: Array<string> }) {
           await sheet.addRow({
             blacklist: paragraph,
           });
-          frases.splice(0, frases.indexOf(paragraph));
+          setParagraphs((frases) => {
+            frases.splice(0, frases.indexOf(paragraph));
+            return frases;
+          });
           setModalOpen(false);
           notificate(
             "Lamentamos pelo ocorrido!",
@@ -121,7 +199,9 @@ export default function Home({ frases }: { frases: Array<string> }) {
           </a>
         </div>
 
-        <div className={`${styles.center} ${styles.font}`}>{paragraph}</div>
+        <div className={`${styles.center} ${styles.font}`}>
+          {paragraph ?? <Skeleton.Input active={true} block />}
+        </div>
 
         <div className={styles.grid}>
           <a className={styles.card} onClick={() => setParagraph(random())}>
@@ -199,83 +279,4 @@ export default function Home({ frases }: { frases: Array<string> }) {
       </main>
     </>
   );
-}
-
-export async function getServerSideProps() {
-  let frases: Array<string> = [];
-  try {
-    if (
-      process.env.NEXT_PUBLIC_KEY !== undefined &&
-      process.env.NEXT_SHEET_ID !== undefined &&
-      process.env.NEXT_PUBLIC_CLIENT_EMAIL !== undefined
-    ) {
-      const getDoc = async (id: string) => {
-        const doc = new GoogleSpreadsheet(id);
-
-        await doc.useServiceAccountAuth({
-          client_email: process.env.NEXT_PUBLIC_CLIENT_EMAIL ?? "",
-          private_key: process.env.NEXT_PUBLIC_KEY
-            ? process.env.NEXT_PUBLIC_KEY.replace(/\\n/g, "\n")
-            : "",
-        });
-        await doc.loadInfo();
-        return doc;
-      };
-      const readRow = async () => {
-        let sheet;
-        let blacklist;
-        const doc = await getDoc(process.env.NEXT_SHEET_ID ?? "");
-        const blacklistDoc = await getDoc(
-          process.env.NEXT_PUBLIC_SHEET_ID_BLACKLIST ?? ""
-        );
-        blacklist = blacklistDoc.sheetsByIndex[0];
-
-        const rowsBlackList = await blacklist.getRows();
-
-        sheet = doc.sheetsByIndex[0];
-        const rows = await sheet.getRows();
-        if (rows.length > 0) {
-          rows.map((row) => {
-            const frase = row;
-            if (
-              !rowsBlackList.find((bl) =>
-                bl["blacklist"].includes(frase["Qual a frase?"])
-              )
-            ) {
-              if (row.ativo === "1") {
-                frases.push(row["Qual a frase?"]);
-              } else if (row.ativo === undefined) {
-                row.ativo = "1";
-                row.save();
-                frases.push(row["Qual a frase?"]);
-              }
-            } else {
-              row.ativo = 0;
-              row.save();
-            }
-          });
-        } else {
-          frases.push(
-            "Oh, não possuímos nenhuma frase no momento, que tal você contribuir com uma frase motivacional?"
-          );
-        }
-      };
-      await readRow();
-    } else {
-      frases.push("Oh não conseguimos se conectar ao provedor de frases! :/");
-    }
-  } catch (error) {
-    console.log(error);
-  }
-
-  if (frases.length === 0) {
-    frases.push(
-      "Oh, não possuímos nenhuma frase no momento, que tal você contribuir com uma frase motivacional?"
-    );
-  }
-  return {
-    props: {
-      frases,
-    },
-  };
 }
