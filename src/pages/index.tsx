@@ -143,6 +143,8 @@ export default function Home() {
             frases.splice(0, frases.indexOf(paragraph));
             return frases;
           });
+          setParagraph(random());
+
           setModalOpen(false);
           notificate(
             "Lamentamos pelo ocorrido!",
