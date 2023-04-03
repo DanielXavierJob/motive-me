@@ -2,29 +2,10 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
-import {
-  Button,
-  Col,
-  FloatButton,
-  Modal,
-  Row,
-  Skeleton,
-  Tooltip,
-  notification,
-} from "antd";
+import { useEffect, useRef, useState } from "react";
+import { Button, Modal, Skeleton, notification } from "antd";
 import { IconType } from "antd/es/notification/interface";
-import {
-  AlertOutlined,
-  ArrowRightOutlined,
-  BankOutlined,
-  CoffeeOutlined,
-  CopyOutlined,
-  PlusOutlined,
-  QuestionCircleOutlined,
-  SyncOutlined,
-} from "@ant-design/icons";
-import Link from "next/link";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
