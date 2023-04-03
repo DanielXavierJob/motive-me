@@ -23,7 +23,7 @@ export default function Home() {
       let fetched = await fetching.json();
       frases = fetched.message;
     } catch (error) {
-      throw new Error("Ocorreu um erro em nossos servidores");
+      window.location.reload();
     }
     setParagraphs(frases);
     setParagraph(random(frases));
@@ -75,6 +75,8 @@ export default function Home() {
             );
           })
           .catch((err) => {
+            window.location.reload();
+
             notificate(
               "Oops!",
               "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
@@ -89,6 +91,8 @@ export default function Home() {
         );
       }
     } catch (error) {
+      window.location.reload();
+
       notificate(
         "Oops!",
         "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
