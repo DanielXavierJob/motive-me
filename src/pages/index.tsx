@@ -2,7 +2,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import { useEffect, useState } from "react";
+import { MutableRefObject, useEffect, useRef, useState } from "react";
 import {
   Button,
   Col,
@@ -32,9 +32,14 @@ export default function Home() {
   const [paragraph, setParagraph] = useState<string>();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-
+  const fraseRef = useRef<any>(null);
   useEffect(() => {
     getFrases();
+
+    let timeout = setTimeout(() => {
+      fraseRef?.current.scrollIntoView();
+    }, 5000);
+    return () => clearTimeout(timeout);
   }, []);
   const getFrases = async () => {
     let frases: any = [];
@@ -158,7 +163,7 @@ export default function Home() {
           </a>
         </div>
 
-        <div className={`${styles.center} ${styles.font}`}>
+        <div className={`${styles.center} ${styles.font}`} ref={fraseRef}>
           {paragraph ?? <Skeleton.Input active={true} block />}
         </div>
 
