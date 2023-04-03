@@ -34,42 +34,55 @@ export default function Home({ frases }: { frases: Array<string> }) {
   };
 
   const getDoc = async (id: string) => {
-    const doc = new GoogleSpreadsheet(id);
-    await doc.useServiceAccountAuth({
-      client_email: process.env.NEXT_PUBLIC_CLIENT_EMAIL ?? "",
-      private_key: process.env.NEXT_PUBLIC_KEY
-        ? process.env.NEXT_PUBLIC_KEY.replace(/\\n/g, "\n")
-        : "",
-    });
-    await doc.loadInfo();
-    return doc;
+    try {
+      const doc = new GoogleSpreadsheet(id);
+      await doc.useServiceAccountAuth({
+        client_email: process.env.NEXT_PUBLIC_CLIENT_EMAIL ?? "",
+        private_key: process.env.NEXT_PUBLIC_KEY
+          ? process.env.NEXT_PUBLIC_KEY.replace(/\\n/g, "\n")
+          : "",
+      });
+      await doc.loadInfo();
+      return doc;
+    } catch (error) {
+      notificate(
+        "Oops!",
+        "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
+        "error"
+      );
+      return null;
+    }
   };
 
   const send = async () => {
     setLoading(true);
-    if (process.env.NEXT_PUBLIC_SHEET_ID_BLACKLIST !== undefined) {
+    try {
       if (paragraph) {
         const blacklistDoc = await getDoc(
           process.env.NEXT_PUBLIC_SHEET_ID_BLACKLIST ?? ""
         );
-        let sheet = blacklistDoc.sheetsByIndex[0];
-        await sheet.addRow({
-          blacklist: paragraph,
-        });
-        frases.splice(0, frases.indexOf(paragraph));
-        setModalOpen(false);
-        notificate(
-          "Lamentamos pelo ocorrido!",
-          "Nós agradecemos pela denúncia! Trocamos a mensagem para outra!"
-        );
+        if (blacklistDoc) {
+          let sheet = blacklistDoc.sheetsByIndex[0];
+          await sheet.addRow({
+            blacklist: paragraph,
+          });
+          frases.splice(0, frases.indexOf(paragraph));
+          setModalOpen(false);
+          notificate(
+            "Lamentamos pelo ocorrido!",
+            "Nós agradecemos pela denúncia! Trocamos a mensagem para outra!"
+          );
+        } else {
+          throw new Error("Not has black list doc");
+        }
       } else {
         notificate(
-          "Por favor preencha todos os campos!",
-          "Preencha o campo para enviar a denúncia!",
+          "Oops!",
+          "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
           "error"
         );
       }
-    } else {
+    } catch (error) {
       notificate(
         "Oops!",
         "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
@@ -190,70 +203,69 @@ export default function Home({ frases }: { frases: Array<string> }) {
 
 export async function getServerSideProps() {
   let frases: Array<string> = [];
-  if (
-    process.env.NEXT_PUBLIC_KEY !== undefined &&
-    process.env.NEXT_SHEET_ID !== undefined &&
-    process.env.NEXT_PUBLIC_CLIENT_EMAIL !== undefined
-  ) {
-    const getDoc = async (id: string) => {
-      const doc = new GoogleSpreadsheet(id);
+  try {
+    if (
+      process.env.NEXT_PUBLIC_KEY !== undefined &&
+      process.env.NEXT_SHEET_ID !== undefined &&
+      process.env.NEXT_PUBLIC_CLIENT_EMAIL !== undefined
+    ) {
+      const getDoc = async (id: string) => {
+        const doc = new GoogleSpreadsheet(id);
 
-      await doc.useServiceAccountAuth({
-        client_email: process.env.NEXT_PUBLIC_CLIENT_EMAIL ?? "",
-        private_key: process.env.NEXT_PUBLIC_KEY
-          ? process.env.NEXT_PUBLIC_KEY.replace(/\\n/g, "\n")
-          : "",
-      });
-      await doc.loadInfo();
-      return doc;
-    };
-    const readRow = async () => {
-      let sheet;
-      let blacklist;
-      const doc = await getDoc(process.env.NEXT_SHEET_ID ?? "");
-      const blacklistDoc = await getDoc(
-        process.env.NEXT_PUBLIC_SHEET_ID_BLACKLIST ?? ""
-      );
-      blacklist = blacklistDoc.sheetsByIndex[0];
-
-      const rowsBlackList = await blacklist.getRows();
-
-      sheet = doc.sheetsByIndex[0];
-      const rows = await sheet.getRows();
-      if (rows.length > 0) {
-        rows.map((row) => {
-          const frase = row;
-          if (
-            !rowsBlackList.find((bl) =>
-              bl["blacklist"].includes(frase["Qual a frase?"])
-            )
-          ) {
-            console.log(row.ativo);
-            if (row.ativo === "1") {
-              frases.push(row["Qual a frase?"]);
-            } else if (row.ativo === undefined) {
-              row.ativo = "1";
-              row.save().then(() => {
-                console.log("Dado atualizado!");
-              });
-              frases.push(row["Qual a frase?"]);
-            }
-          } else {
-            row.ativo = 0;
-            row.save().then(() => {
-              console.log("Dado atualizado!");
-            });
-          }
+        await doc.useServiceAccountAuth({
+          client_email: process.env.NEXT_PUBLIC_CLIENT_EMAIL ?? "",
+          private_key: process.env.NEXT_PUBLIC_KEY
+            ? process.env.NEXT_PUBLIC_KEY.replace(/\\n/g, "\n")
+            : "",
         });
-      } else {
-        frases.push(
-          "Oh, não possuímos nenhuma frase no momento, que tal você contribuir com uma frase motivacional?"
+        await doc.loadInfo();
+        return doc;
+      };
+      const readRow = async () => {
+        let sheet;
+        let blacklist;
+        const doc = await getDoc(process.env.NEXT_SHEET_ID ?? "");
+        const blacklistDoc = await getDoc(
+          process.env.NEXT_PUBLIC_SHEET_ID_BLACKLIST ?? ""
         );
-      }
-    };
-    await readRow();
-  } else {
-    frases.push("Oh não conseguimos se conectar ao provedor de frases! :/");
+        blacklist = blacklistDoc.sheetsByIndex[0];
+
+        const rowsBlackList = await blacklist.getRows();
+
+        sheet = doc.sheetsByIndex[0];
+        const rows = await sheet.getRows();
+        if (rows.length > 0) {
+          rows.map((row) => {
+            const frase = row;
+            if (
+              !rowsBlackList.find((bl) =>
+                bl["blacklist"].includes(frase["Qual a frase?"])
+              )
+            ) {
+              if (row.ativo === "1") {
+                frases.push(row["Qual a frase?"]);
+              } else if (row.ativo === undefined) {
+                row.ativo = "1";
+                row.save();
+                frases.push(row["Qual a frase?"]);
+              }
+            } else {
+              row.ativo = 0;
+              row.save();
+            }
+          });
+        } else {
+          frases.push(
+            "Oh, não possuímos nenhuma frase no momento, que tal você contribuir com uma frase motivacional?"
+          );
+        }
+      };
+      await readRow();
+    } else {
+      frases.push("Oh não conseguimos se conectar ao provedor de frases! :/");
+    }
+  } catch (error) {
+    console.log(error);
   }
 
   if (frases.length === 0) {
