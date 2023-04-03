@@ -3,15 +3,27 @@ import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { useEffect, useRef, useState } from "react";
-import { Button, Modal, Skeleton, notification } from "antd";
+import { Button, Col, Modal, Rate, Row, Skeleton, notification } from "antd";
 import { IconType } from "antd/es/notification/interface";
+import { HeartFilled, HeartOutlined } from "@ant-design/icons";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  const [paragraphs, setParagraphs] = useState<Array<string>>([]);
-  const [paragraph, setParagraph] = useState<string>();
+  const [paragraphs, setParagraphs] = useState<
+    Array<{
+      frase: string;
+      stars: number;
+      author: string;
+    }>
+  >([]);
+  const [paragraph, setParagraph] = useState<{
+    frase: string;
+    stars: number;
+    author: string;
+  }>();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [disableRate, setDisableRate] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const fraseRef = useRef<any>(null);
   useEffect(() => {
@@ -34,7 +46,13 @@ export default function Home() {
     setParagraphs(frases);
     setParagraph(random(frases));
   };
-  const random = (frases?: Array<string>) => {
+  const random = (
+    frases?: Array<{
+      frase: string;
+      stars: number;
+      author: string;
+    }>
+  ) => {
     let rand: number = 0;
     if (frases) {
       rand = Math.floor(Math.random() * frases.length);
@@ -115,6 +133,29 @@ export default function Home() {
     );
     notificate("Prontinho!", "Você copiou a frase!");
   };
+  const sendStar = async (value: number) => {
+    setDisableRate(true);
+    fetch("/api/send-star", {
+      method: "POST",
+      body: JSON.stringify({
+        paragraph: paragraph?.frase,
+        stars: value,
+      }),
+    })
+      .then((data) => {
+        notificate(
+          "Star!",
+          "Obrigado por compartilhar conosco esta avaliação!"
+        );
+      })
+      .catch((err) => {
+        notificate(
+          "Error!",
+          "Infelizmente ocorreu um erro ao compartilhar a avaliação!",
+          "error"
+        );
+      });
+  };
   return (
     <>
       <Head>
@@ -126,6 +167,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/logo.ico" />
       </Head>
+
       <main className={styles.main}>
         <div className={styles.center}>
           <a
@@ -144,12 +186,57 @@ export default function Home() {
           </a>
         </div>
 
-        <div className={`${styles.center} ${styles.font}`} ref={fraseRef}>
-          {paragraph ? (
-            `“${paragraph}”`
-          ) : (
-            <Skeleton.Input active={true} block />
-          )}
+        <div
+          className={`${styles.center}`}
+          ref={fraseRef}
+          style={{
+            textAlign: "center",
+          }}
+        >
+          <Row justify={"center"} align={"middle"}>
+            <Col span={24} className={styles.font}>
+              {paragraph ? (
+                `“${paragraph.frase}”`
+              ) : (
+                <Skeleton.Input active={true} block />
+              )}
+            </Col>
+            <Col
+              span={12}
+              className={styles.font}
+              style={{
+                marginTop: "1rem",
+                fontSize: "20px",
+              }}
+            >
+              {paragraph ? (
+                ` Por ${paragraph.author}`
+              ) : (
+                <Skeleton.Input active={true} block />
+              )}
+            </Col>
+            <Col
+              span={12}
+              style={{
+                marginTop: "1rem",
+              }}
+            >
+              {paragraph ? (
+                <Rate
+                  character={<HeartFilled />}
+                  allowHalf
+                  style={{
+                    color: "red",
+                  }}
+                  defaultValue={paragraph.stars}
+                  disabled={disableRate}
+                  onChange={sendStar}
+                />
+              ) : (
+                <Skeleton.Input active={true} block />
+              )}
+            </Col>
+          </Row>
         </div>
 
         <div className={styles.grid}>

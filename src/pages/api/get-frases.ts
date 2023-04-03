@@ -38,12 +38,44 @@ export default async function handler(
           bl["blacklist"].includes(frase["Qual a frase?"])
         )
       ) {
-        if (row.ativo === "1") {
-          frases.push(row["Qual a frase?"]);
-        } else if (row.ativo === undefined) {
-          row.ativo = "1";
-          row.save();
-          frases.push(row["Qual a frase?"]);
+        if (row.stars === undefined) {
+          row.stars = 0;
+          row.quantity_stars = 0;
+          row.save().then((data) => {
+            if (row.ativo === "1") {
+              frases.push({
+                frase: row["Qual a frase?"],
+                stars: Number(row.stars) / Number(row.quantity_stars),
+                author: row["Qual o autor?"],
+              });
+            } else if (row.ativo === undefined) {
+              row.ativo = "1";
+              row.save().then(() => {
+                frases.push({
+                  frase: row["Qual a frase?"],
+                  stars: Number(row.stars) / Number(row.quantity_stars),
+                  author: row["Qual o autor?"],
+                });
+              });
+            }
+          });
+        } else {
+          if (row.ativo === "1") {
+            frases.push({
+              frase: row["Qual a frase?"],
+              stars: Number(row.stars) / Number(row.quantity_stars),
+              author: row["Qual o autor?"],
+            });
+          } else if (row.ativo === undefined) {
+            row.ativo = "1";
+            row.save().then(() => {
+              frases.push({
+                frase: row["Qual a frase?"],
+                stars: Number(row.stars) / Number(row.quantity_stars),
+                author: row["Qual o autor?"],
+              });
+            });
+          }
         }
       } else {
         row.ativo = 0;
