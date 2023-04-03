@@ -47,6 +47,7 @@
 }
 
 .card {
+  cursor: pointer;
   padding: 1rem 1.2rem;
   border-radius: var(--border-radius);
   background: rgba(var(--card-rgb), 0);
@@ -77,11 +78,23 @@
   justify-content: center;
   align-items: center;
   position: relative;
-  padding: 4rem 0;
+  padding: 4rem 4rem;
 }
 
+.font {
+  font-size: 30px;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  letter-spacing: 0px;
+  word-spacing: 0px;
+  color: #000000;
+  font-weight: normal;
+  text-decoration: none solid rgb(68, 68, 68);
+  font-style: italic;
+  font-variant: normal;
+  text-transform: none;
+}
 .center::before {
-  background: var(--secondary-glow);
+  /* background: var(--secondary-glow); */
   border-radius: 50%;
   width: 480px;
   height: 360px;
@@ -97,7 +110,7 @@
 
 .center::before,
 .center::after {
-  content: '';
+  content: "";
   left: 50%;
   position: absolute;
   filter: blur(45px);
@@ -125,7 +138,7 @@
 
 .thirteen::before,
 .thirteen::after {
-  content: '';
+  content: "";
   position: absolute;
   z-index: -1;
 }
