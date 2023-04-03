@@ -207,7 +207,12 @@ export default function Home() {
               )}
             </Col>
             <Col
-              span={12}
+              xs={24}
+              sm={24}
+              md={12}
+              lg={12}
+              xl={12}
+              xxl={12}
               className={styles.font}
               style={{
                 marginTop: "1rem",
@@ -221,9 +226,17 @@ export default function Home() {
               )}
             </Col>
             <Col
-              span={12}
+              xs={24}
+              sm={24}
+              md={12}
+              lg={12}
+              xl={12}
+              xxl={12}
               style={{
                 marginTop: "1rem",
+                backgroundColor: "white",
+                padding: "6px",
+                borderRadius: "16px",
               }}
             >
               {paragraph ? (
