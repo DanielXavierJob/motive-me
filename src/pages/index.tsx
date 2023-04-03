@@ -24,6 +24,7 @@ export default function Home() {
   }>();
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [disableRate, setDisableRate] = useState<boolean>(false);
+  const [valueRate, setValueRate] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const fraseRef = useRef<any>(null);
   useEffect(() => {
@@ -53,12 +54,15 @@ export default function Home() {
       author: string;
     }>
   ) => {
+    setDisableRate(false);
     let rand: number = 0;
     if (frases) {
       rand = Math.floor(Math.random() * frases.length);
+      setValueRate(frases[rand].stars);
       return frases[rand];
     } else {
       rand = Math.floor(Math.random() * paragraphs.length);
+      setValueRate(paragraphs[rand].stars);
       return paragraphs[rand];
     }
   };
@@ -134,6 +138,7 @@ export default function Home() {
     notificate("Prontinho!", "Você copiou a frase!");
   };
   const sendStar = async (value: number) => {
+    setValueRate(value);
     setDisableRate(true);
     fetch("/api/send-star", {
       method: "POST",
@@ -228,7 +233,7 @@ export default function Home() {
                   style={{
                     color: "red",
                   }}
-                  defaultValue={paragraph.stars}
+                  value={valueRate}
                   disabled={disableRate}
                   onChange={sendStar}
                 />
