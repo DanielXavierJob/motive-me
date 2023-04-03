@@ -22,7 +22,6 @@ export default function Home() {
       let fetching = await fetch("/api/get-frases");
       let fetched = await fetching.json();
       frases = fetched.message;
-      console.log("AA", frases);
     } catch (error) {
       throw new Error("Ocorreu um erro em nossos servidores");
     }
@@ -76,7 +75,6 @@ export default function Home() {
             );
           })
           .catch((err) => {
-            console.log(err);
             notificate(
               "Oops!",
               "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
@@ -91,7 +89,6 @@ export default function Home() {
         );
       }
     } catch (error) {
-      console.log(error);
       notificate(
         "Oops!",
         "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
