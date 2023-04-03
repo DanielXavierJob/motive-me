@@ -21,9 +21,9 @@ export default function Home() {
     let frases: Array<string> = [];
     try {
       if (
-        process.env.NEXT_PUBLIC_KEY !== undefined &&
-        process.env.NEXT_PUBLIC_SHEET_ID !== undefined &&
-        process.env.NEXT_PUBLIC_CLIENT_EMAIL !== undefined
+        process.env["NEXT_PUBLIC_KEY"] !== undefined &&
+        process.env["NEXT_PUBLIC_SHEET_ID"] !== undefined &&
+        process.env["NEXT_PUBLIC_CLIENT_EMAIL"] !== undefined
       ) {
         frases = await readRow();
       } else {
@@ -67,9 +67,9 @@ export default function Home() {
     let sheet;
     let blacklist;
     let frases = [];
-    const doc = await getDoc(process.env.NEXT_PUBLIC_SHEET_ID ?? "");
+    const doc = await getDoc(process.env["NEXT_PUBLIC_SHEET_ID"] ?? "");
     const blacklistDoc = await getDoc(
-      process.env.NEXT_PUBLIC_SHEET_ID_BLACKLIST ?? ""
+      process.env["NEXT_PUBLIC_SHEET_ID_BLACKLIST"] ?? ""
     );
     if (doc && blacklistDoc) {
       blacklist = blacklistDoc.sheetsByIndex[0];
@@ -110,9 +110,9 @@ export default function Home() {
     try {
       const doc = new GoogleSpreadsheet(id);
       await doc.useServiceAccountAuth({
-        client_email: process.env.NEXT_PUBLIC_CLIENT_EMAIL ?? "",
-        private_key: process.env.NEXT_PUBLIC_KEY
-          ? process.env.NEXT_PUBLIC_KEY.replace(/\\n/g, "\n")
+        client_email: process.env["NEXT_PUBLIC_CLIENT_EMAIL"] ?? "",
+        private_key: process.env["NEXT_PUBLIC_KEY"]
+          ? process.env["NEXT_PUBLIC_KEY"].replace(/\\n/g, "\n")
           : "",
       });
       await doc.loadInfo();
@@ -132,7 +132,7 @@ export default function Home() {
     try {
       if (paragraph) {
         const blacklistDoc = await getDoc(
-          process.env.NEXT_PUBLIC_SHEET_ID_BLACKLIST ?? ""
+          process.env["NEXT_PUBLIC_SHEET_ID_BLACKLIST"] ?? ""
         );
         if (blacklistDoc) {
           let sheet = blacklistDoc.sheetsByIndex[0];
