@@ -26,12 +26,11 @@ export default function Home() {
         process.env.NEXT_PUBLIC_CLIENT_EMAIL !== undefined
       ) {
         frases = await readRow();
-        console.log(frases);
       } else {
         frases.push("Oh não conseguimos se conectar ao provedor de frases! :/");
       }
     } catch (error) {
-      console.log(error);
+      throw new Error("Ocorreu um erro em nossos servidores");
     }
 
     if (frases.length === 0) {
@@ -73,7 +72,6 @@ export default function Home() {
       process.env.NEXT_PUBLIC_SHEET_ID_BLACKLIST ?? ""
     );
     if (doc && blacklistDoc) {
-      console.log("OK");
       blacklist = blacklistDoc.sheetsByIndex[0];
 
       const rowsBlackList = await blacklist.getRows();
@@ -125,7 +123,7 @@ export default function Home() {
         "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
         "error"
       );
-      return null;
+      throw new Error("Ocorreu um erro em nossos servidores");
     }
   };
 
@@ -166,6 +164,7 @@ export default function Home() {
         "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
         "error"
       );
+      throw new Error("Ocorreu um erro em nossos servidores");
     }
     setLoading(false);
   };
