@@ -2,7 +2,6 @@ import Head from "next/head";
 import Image from "next/image";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import { GoogleSpreadsheet } from "google-spreadsheet";
 import { useEffect, useState } from "react";
 import { Button, Modal, Skeleton, notification } from "antd";
 import { IconType } from "antd/es/notification/interface";
@@ -18,25 +17,14 @@ export default function Home() {
     getFrases();
   }, []);
   const getFrases = async () => {
-    let frases: Array<string> = [];
+    let frases: any = [];
     try {
-      if (
-        process.env["NEXT_PUBLIC_KEY"] !== undefined &&
-        process.env["NEXT_PUBLIC_SHEET_ID"] !== undefined &&
-        process.env["NEXT_PUBLIC_CLIENT_EMAIL"] !== undefined
-      ) {
-        frases = await readRow();
-      } else {
-        frases.push("Oh não conseguimos se conectar ao provedor de frases! :/");
-      }
+      let fetching = await fetch("/api/get-frases");
+      let fetched = await fetching.json();
+      frases = fetched.message;
+      console.log("AA", frases);
     } catch (error) {
       throw new Error("Ocorreu um erro em nossos servidores");
-    }
-
-    if (frases.length === 0) {
-      frases.push(
-        "Oh, não possuímos nenhuma frase no momento, que tal você contribuir com uma frase motivacional?"
-      );
     }
     setParagraphs(frases);
     setParagraph(random(frases));
@@ -63,104 +51,47 @@ export default function Home() {
       type: type,
     });
   };
-  const readRow = async () => {
-    let sheet;
-    let blacklist;
-    let frases = [];
-    const doc = await getDoc(process.env["NEXT_PUBLIC_SHEET_ID"] ?? "");
-    const blacklistDoc = await getDoc(
-      process.env["NEXT_PUBLIC_SHEET_ID_BLACKLIST"] ?? ""
-    );
-    if (doc && blacklistDoc) {
-      blacklist = blacklistDoc.sheetsByIndex[0];
-
-      const rowsBlackList = await blacklist.getRows();
-
-      sheet = doc.sheetsByIndex[0];
-      const rows = await sheet.getRows();
-      if (rows.length > 0) {
-        rows.map((row) => {
-          const frase = row;
-          if (
-            !rowsBlackList.find((bl) =>
-              bl["blacklist"].includes(frase["Qual a frase?"])
-            )
-          ) {
-            if (row.ativo === "1") {
-              frases.push(row["Qual a frase?"]);
-            } else if (row.ativo === undefined) {
-              row.ativo = "1";
-              row.save();
-              frases.push(row["Qual a frase?"]);
-            }
-          } else {
-            row.ativo = 0;
-            row.save();
-          }
-        });
-      } else {
-        frases.push(
-          "Oh, não possuímos nenhuma frase no momento, que tal você contribuir com uma frase motivacional?"
-        );
-      }
-    }
-    return frases;
-  };
-  const getDoc = async (id: string) => {
-    try {
-      const doc = new GoogleSpreadsheet(id);
-      await doc.useServiceAccountAuth({
-        client_email: process.env["NEXT_PUBLIC_CLIENT_EMAIL"] ?? "",
-        private_key: process.env["NEXT_PUBLIC_KEY"]
-          ? process.env["NEXT_PUBLIC_KEY"].replace(/\\n/g, "\n")
-          : "",
-      });
-      await doc.loadInfo();
-      return doc;
-    } catch (error) {
-      notificate(
-        "Oops!",
-        "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
-        "error"
-      );
-      throw new Error("Ocorreu um erro em nossos servidores");
-    }
-  };
 
   const send = async () => {
     setLoading(true);
     try {
       if (paragraph) {
-        const blacklistDoc = await getDoc(
-          process.env["NEXT_PUBLIC_SHEET_ID_BLACKLIST"] ?? ""
-        );
-        if (blacklistDoc) {
-          let sheet = blacklistDoc.sheetsByIndex[0];
-          await sheet.addRow({
-            blacklist: paragraph,
-          });
-          setParagraphs((frases) => {
-            frases.splice(0, frases.indexOf(paragraph));
-            return frases;
-          });
-          setParagraph(random());
+        fetch("/api/send-blacklist", {
+          method: "POST",
+          body: JSON.stringify({
+            paragraph,
+          }),
+        })
+          .then((data) => {
+            setParagraphs((frases) => {
+              frases.splice(0, frases.indexOf(paragraph));
+              return frases;
+            });
+            setParagraph(random());
 
-          setModalOpen(false);
-          notificate(
-            "Lamentamos pelo ocorrido!",
-            "Nós agradecemos pela denúncia! Trocamos a mensagem para outra!"
-          );
-        } else {
-          throw new Error("Not has black list doc");
-        }
+            setModalOpen(false);
+            notificate(
+              "Lamentamos pelo ocorrido!",
+              "Nós agradecemos pela denúncia! Trocamos a mensagem para outra!"
+            );
+          })
+          .catch((err) => {
+            console.log(err);
+            notificate(
+              "Oops!",
+              "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
+              "error"
+            );
+          });
       } else {
         notificate(
           "Oops!",
-          "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
+          "Ocorreu um erro em nossos servidores! Sentimos muito por isso!.",
           "error"
         );
       }
     } catch (error) {
+      console.log(error);
       notificate(
         "Oops!",
         "Ocorreu um erro em nossos servidores! Sentimos muito por isso.",
